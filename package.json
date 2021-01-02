@@ -9,6 +9,7 @@
     "express": "^4.17.1",
     "mutation-observer": "^1.0.3",
     "mysql": "^2.18.1",
+    "request": "^2.88.2",
     "selenium-webdriver": "^4.0.0-alpha.8"
   },
   "devDependencies": {},
