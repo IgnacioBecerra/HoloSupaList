@@ -5,6 +5,20 @@ const webdriver = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const chromedriver = require('chromedriver');
 
+let options = new chrome.Options();
+//Below arguments are critical for Heroku deployment
+options.addArguments("--window-size=1920,1080")
+options.addArguments("--disable-extensions")
+options.addArguments("--proxy-server='direct://'")
+options.addArguments("--proxy-bypass-list=*")
+options.addArguments("--start-maximized")
+//options.addArguments('--headless')
+options.addArguments('--disable-gpu')
+options.addArguments('--disable-dev-shm-usage')
+options.addArguments('--no-sandbox')
+options.addArguments('--ignore-certificate-errors')
+
+
 const {sanitizeObject, sanitizeString } = require('./sanitizers.js');
 
 chrome.setDefaultService(new chrome.ServiceBuilder(chromedriver.path).build());
@@ -25,6 +39,7 @@ const observerSetup = (videoId, videoTitle) => {
 
    driver = new webdriver.Builder()
              .withCapabilities(webdriver.Capabilities.chrome())
+             .setChromeOptions(options)
              .build();
 
   driver.get(`https://www.youtube.com/live_chat?v=${videoId}`);
