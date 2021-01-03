@@ -53,7 +53,11 @@ const setupObserver = (videoId) => {
              .setChromeOptions(options)
              .build();
 
+
   driver.get(`https://www.youtube.com/live_chat?v=${videoId}`);
+  driver.executeScript('return navigator.userAgent').then((e) => {
+    console.log(e)
+  })
 
 
   driver.wait(until.elementLocated(By.css('#items.yt-live-chat-item-list-renderer')));

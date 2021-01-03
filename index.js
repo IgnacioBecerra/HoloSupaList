@@ -102,7 +102,7 @@ const getVideoData = (list) => {
                     setupObserver(e.id);
                     insertData(getNameFromChannelId(e.snippet.channelId), e.snippet.title)
                     clearInterval(start)
-                    console.log("Observer start!")
+                    console.log(e.snippet.title + " start!")
                 }
             }, 30000)
         }
@@ -116,7 +116,7 @@ const getVideoData = (list) => {
 // TODO watch streams that are happening within a few hours, wait until chat appears to run get video in setupObserver
 
 const scheduleObservers = () => {
-  var sql = `SELECT * FROM schedules where start_time > NOW() ORDER BY start_time;`;
+  var sql = `SELECT * FROM schedules where start_time > (NOW() - interval 1 hour) ORDER BY start_time;`;
   connection.query(sql, function (err, result) {
     if (err) throw err; // try catch
 
@@ -159,7 +159,8 @@ const updateSchedules = () => {
   });
 }
 
-scheduleObservers();
+//scheduleObservers();
+setupObserver('4IL7GsHnT0I')
 
 // update every 3 hours to account for changes
 setInterval( () => {
