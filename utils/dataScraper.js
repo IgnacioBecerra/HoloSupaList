@@ -2,6 +2,7 @@ const path = require('path');
 require('dotenv').config();
 
 const webdriver = require('selenium-webdriver');
+const {until, By} = require('selenium-webdriver')
 const chrome = require('selenium-webdriver/chrome');
 const chromedriver = require('chromedriver');
 
@@ -12,11 +13,21 @@ options.addArguments("--disable-extensions")
 options.addArguments("--proxy-server='direct://'")
 options.addArguments("--proxy-bypass-list=*")
 options.addArguments("--start-maximized")
-//options.addArguments('--headless')
+
+
+options.addArguments('--headless')
+
+options.addArguments(['user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"']);
+
 options.addArguments('--disable-gpu')
 options.addArguments('--disable-dev-shm-usage')
 options.addArguments('--no-sandbox')
 options.addArguments('--ignore-certificate-errors')
+
+let chromeCapabilities = webdriver.Capabilities.chrome();
+chromeCapabilities.set("acceptInsecureCerts", true);
+chromeCapabilities.set("acceptSslCerts", true);
+
 
 
 const {sanitizeObject, sanitizeString } = require('./sanitizers.js');
@@ -35,7 +46,7 @@ var db_config = {
   charset : 'utf8mb4'
 };
 
-const observerSetup = (videoId, videoTitle) => {
+const setupObserver = (videoId) => {
 
    driver = new webdriver.Builder()
              .withCapabilities(webdriver.Capabilities.chrome())
@@ -44,7 +55,9 @@ const observerSetup = (videoId, videoTitle) => {
 
   driver.get(`https://www.youtube.com/live_chat?v=${videoId}`);
 
-  // check if chat exists, if not keep refreshing every 30 seconds
+
+  driver.wait(until.elementLocated(By.css('#items.yt-live-chat-item-list-renderer')));
+
 
   let obs = `
     let chatWindow = document.querySelector('#items.yt-live-chat-item-list-renderer');
@@ -91,18 +104,21 @@ const observerSetup = (videoId, videoTitle) => {
   obs.observe(chatWindow, { childList: true });
 
   // Check every minute if chat has stopped. If so, disconnect.
-  setInterval( () => {
+  let interval = setInterval( checkMessages, 60000);
+
+
+  function checkMessages() {
     chatStopped = true;
 
     // Wait to see if observer still has messages appearing
     setTimeout( () => {
       if(chatStopped) {
         obs.disconnect();
+        clearInterval(interval);
         console.log('disconnect');
         window.localStorage.setItem('stopped', true);
       }
-    }, 10000)
-  }, 60000);
+    }, 10000)}
   `
 
   driver.executeScript(obs);
@@ -142,6 +158,6 @@ const insertData = (channel, videoTitle) => {
 }
 
 module.exports = {
-  observerSetup,
+  setupObserver,
   insertData
 }

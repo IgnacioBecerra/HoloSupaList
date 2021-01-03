@@ -6,7 +6,7 @@ const port = process.env.PORT || "3000";
 
 require('dotenv').config();
 
-const {observerSetup, insertData} = require('./utils/dataScraper.js');
+const {setupObserver, insertData} = require('./utils/dataScraper.js');
 
 
 var mysql = require('mysql');
@@ -47,34 +47,31 @@ function handleDisconnect() {
 
 handleDisconnect()
 
-// get time from Teamup and then schedule run
-
-
-// let closestTime = 0;
-// setInterval( closestTime = fetch closest live time , 3600000)
-// if(currentTime is 10m before live )
-// fetch live ID
-//    if cant fetch 3 times, query teamup for event today and update database
-
 
 const getVideoId = (channelId) => {
+  console.log(channelId)
 
   let authOptions = {
     url: `https://youtube.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=upcoming&type=video&key=${process.env.youtube_key}`,
     json: true
   };
 
+  console.log(authOptions)
+
   let list = []
 
   // maybe check for stream for closest time
   request.get(authOptions, function(error, response, body) {
+
+    console.log(body)
     body.items.forEach(e => {
       list.push(e.id.videoId)
     })
 
+    console.log(list)
+
     getVideoData(list)
   });
-  // observerSetup(videoId)
 }
 
 const getVideoData = (list) => {
@@ -91,52 +88,50 @@ const getVideoData = (list) => {
     body.items.forEach( (e) => {
         console.log(e)
 
-        let startTime = new Date(e.liveStreamingDetails.scheduledStartTime).getTime();
-        if(startTime - Date.now() < 600000) {
-            observerSetup(e.id, e.snippet.title);
-            //insertData(e.snippet.channelTitle, e.snippet.title)
-            insertData('Kanata', e.snippet.title)
+        // just in case it gets rescheduled
+        let startTime = new Date(e.liveStreamingDetails.scheduledStartTime) - Date.now();
+        console.log('startTime ' + startTime)
+
+        // if event is listed and stream isn't starting in less than an hour, update. Probably rescheduled.
+        if(startTime > 1800000) {
+            var sql = `UPDATE schedules SET start_time="${e.liveStreamingDetails.scheduledStartTime}" WHERE event_title = "${e.snippet.title}";`;
+            connection.query(sql);
+        }
+
+
+        if(startTime < 300000) {
+            setupObserver(e.id);
+            insertData(getNameFromChannelId(e.snippet.channelId), e.snippet.title)
         }
     })
   });
 }
 
 
-
-
-
-
-
-//observerSetup('pvpDeZeR9vs', '頂いたスパチャを読みながら雑談！Talk while reading Super Chat!10Q')
-//insertData('Kiara', '頂いたスパチャを読みながら雑談！Talk while reading Super Chat!10Q');
-
+// TODO watch streams that are happening within a few hours, wait until chat appears to run get video in setupObserver
 
 const scheduleObservers = () => {
   var sql = `SELECT * FROM schedules where start_time > NOW() ORDER BY start_time;`;
   connection.query(sql, function (err, result) {
     if (err) throw err; // try catch
+
+    // only schedule the ones that are happening within ten minutes
     result.forEach( (e) => {
+      let timeUntilLive = new Date(e.start_time) - Date.now() - 600000; // start procedures 10 minutes before scheduled time
+      console.log('timeUntil ' + e.event_title + ' starts : ' + timeUntilLive)
 
-        let timeUntilLive = new Date(e.start_time).getTime() - Date.now() - 300000;
-        console.log(timeUntilLive)
-
-        setTimeout( () => {
-            getVideoId(e.channelId);
-        }, timeUntilLive)
+      setTimeout( () => {
+        getVideoId(e.channel_id);
+      }, timeUntilLive);
     });
   });
 }
 
 
-//scheduleObservers();
 
-getVideoId('UCZlDXzGoo7d44bwdNObFacg')
-
-
-
-const getSchedules = () => {
+const updateSchedules = () => {
   let authOptions = {
-    url: `http://api.teamup.com/ksgvawzp4akez27rf1/events?startDate=2020-12-27&endDate=2021-01-03`,
+    url: `http://api.teamup.com/ksgvawzp4akez27rf1/events?tz=UTC`,
     headers: {
         'Teamup-Token': process.env.teamup_token
     },
@@ -158,6 +153,20 @@ const getSchedules = () => {
     })
   });
 }
+
+scheduleObservers();
+
+// update every 3 hours to account for changes
+setInterval( () => {
+    updateSchedules();
+}, 10800000);
+
+
+// run every hour
+setInterval( () => {
+    scheduleObservers();
+}, 36000000)
+
 
 const getStreamer = (id) => {
   switch(id) {
@@ -203,23 +212,33 @@ const getChannelId = (id) => {
   }
 }
 
+const getNameFromChannelId = (id) => {
+    switch(id) {
+    case "UCyl1z3jo3XHR1riLFKG5UAg":
+      return "Ame";
 
+    case "UCL_qhgtOy0dy1Agp8vkySQg":
+      return "Mori";
 
+    case "UCoSrY_IQQVpmIRZ9Xf-y93g":
+      return "Gura";
 
-//scheduleObservers();
+    case "UC1CfXB_kRs3C-zaeTG3oGyg":
+      return "Haachama";
 
+    case "UCMwGHR0BTZuLsmjY_NT5Pwg":
+      return "Ina";
 
-
-
-
+    case "UCHsx4Hqa-1ORjQTh9TYDhww":
+      return "Kiara";
+  }
+}
 
 
 // redirect to HTML homepage
 app.get('/', function(req, res, next) {
 
   res.sendFile(path.join(__dirname + '/public/index.html'));
-
-
 
 });
 
