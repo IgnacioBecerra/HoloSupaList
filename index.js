@@ -96,13 +96,18 @@ const getVideoData = (list) => {
         if(startTime > 1800000) {
             var sql = `UPDATE schedules SET start_time="${e.liveStreamingDetails.scheduledStartTime}" WHERE event_title = "${e.snippet.title}";`;
             connection.query(sql);
+        } else {
+           let start = setInterval( () => {
+                if(startTime < 300000) {
+                    setupObserver(e.id);
+                    insertData(getNameFromChannelId(e.snippet.channelId), e.snippet.title)
+                    clearInterval(start)
+                    console.log("Observer start!")
+                }
+            }, 30000)
         }
 
 
-        if(startTime < 300000) {
-            setupObserver(e.id);
-            insertData(getNameFromChannelId(e.snippet.channelId), e.snippet.title)
-        }
     })
   });
 }
