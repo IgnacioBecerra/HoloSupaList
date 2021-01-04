@@ -98,14 +98,18 @@ const getVideoData = (list) => {
             connection.query(sql);
         } else {
            let start = setInterval( () => {
-            console.log('interval running')
-                if(startTime < 300000) {
-                    setupObserver(e.id);
-                    insertData(getNameFromChannelId(e.snippet.channelId), e.snippet.title)
-                    clearInterval(start)
-                    console.log(e.snippet.title + " start!")
-                }
-            }, 30000)
+
+              let timeDiff = new Date(e.liveStreamingDetails.scheduledStartTime) - Date.now();
+              console.log('current time diff ' + timeDiff)
+
+              console.log('interval running')
+              if(timeDiff < 300000) {
+                  setupObserver(e.id);
+                  insertData(getNameFromChannelId(e.snippet.channelId), e.snippet.title)
+                  clearInterval(start)
+                  console.log(e.snippet.title + " start!")
+              }
+          }, 30000)
         }
 
 
