@@ -98,6 +98,7 @@ const getVideoData = (list) => {
             connection.query(sql);
         } else {
            let start = setInterval( () => {
+            console.log('interval running')
                 if(startTime < 300000) {
                     setupObserver(e.id);
                     insertData(getNameFromChannelId(e.snippet.channelId), e.snippet.title)
@@ -116,7 +117,7 @@ const getVideoData = (list) => {
 // TODO watch streams that are happening within a few hours, wait until chat appears to run get video in setupObserver
 
 const scheduleObservers = () => {
-  var sql = `SELECT * FROM schedules where start_time > (NOW() - interval 1 hour) ORDER BY start_time;`;
+  var sql = `SELECT * FROM schedules where start_time > (NOW() - interval 2 hour) ORDER BY start_time;`;
   connection.query(sql, function (err, result) {
     if (err) throw err; // try catch
 
