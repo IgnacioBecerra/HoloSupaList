@@ -1,7 +1,49 @@
 <html>
+<script type="text/javascript">
+	fetch('/getAme').then(res => {
+		res.json().then((data) => {
+			data.forEach(entry => {
+				console.log(entry)
 
+				  var newRow = document.createElement("tr");
+		          var cols = "";
+		          cols += '<td> '+ entry.author +'</td>';
+		          cols += '<td> '+ entry.amount +'</td>';
+		          cols += '<td> '+ entry.message +'</td>';
+		          cols += '<td> '+ entry.timestamp +'</td>';
+		          cols += '<td> '+ entry.date +'</td>';
+		          cols += '<td> '+ entry.video +'</td>';
+		          newRow.classList = "test";    
+		          newRow.innerHTML = cols;
+		          newRow.style.backgroundColor = entry.color;
+		          console.log(newRow)
+		          document.querySelector("#superchat-table").append(newRow);
+			})
+	      
+       	});
+	})
+</script>
+
+<style>
+	table {
+		margin-left: auto;
+		margin-right: auto;
+		width: 80%;
+	}
+	.test  {
+		height: 50px;
+		width: 50%;
+	}
+</style>
 <body>
-	<p>YAY</p>
+	<table idborder='1' id='superchat-table'>
+		<tr>
+			<th>Author</th>
+			<th>Amount</th>
+			<th>Message</th>
+			<th>time</th>
+			<th>date</th>
+			<th>video</th>
+		</tr>
+	</table>
 </body>
-
-</html>

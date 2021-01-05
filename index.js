@@ -175,7 +175,7 @@ setInterval( () => {
 // run every hour
 setInterval( () => {
     scheduleObservers();
-}, 36000000)
+}, 3600000)
 
 
 const getStreamer = (id) => {
@@ -248,8 +248,17 @@ const getNameFromChannelId = (id) => {
 // redirect to HTML homepage
 app.get('/', function(req, res, next) {
 
+
   res.sendFile(path.join(__dirname + '/public/index.html'));
 
+});
+
+app.get('/getAme', function(req, res, next) {
+  var sql = `SELECT * FROM Ame;`;
+  connection.query(sql, function (err, rows) {
+    if (err) throw err; // try catch
+    res.send(rows)
+  });
 });
 
 app.listen(port, () => console.log(`Listening on port ${port}!`));

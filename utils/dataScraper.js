@@ -138,11 +138,9 @@ const insertData = (channel, videoTitle) => {
       if(!supas) return;
 
       supas.forEach((s) => {
-        
-        videoTitle = sanitizeString(videoTitle);
         sanitizeObject(s);
 
-        var sql = `INSERT INTO ${channel} (author, amount, message, timestamp, color, video) VALUES ("${s.author}", "${s.amount}", "${s.message}", "${s.timestamp}", "${s.color}", "${videoTitle}")`;
+        var sql = `INSERT INTO ${channel} (author, amount, message, timestamp, color, video) VALUES ("${s.author}", "${s.amount}", "${s.message}", "${s.timestamp}", "${s.color}", "${sanitizeString(videoTitle)}")`;
         connection.query(sql, function (err, result) {
           if (err) throw err; // try catch
           console.log(s);
