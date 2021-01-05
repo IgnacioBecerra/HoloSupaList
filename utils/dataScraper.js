@@ -152,7 +152,7 @@ const insertData = (channel, videoTitle) => {
 
     driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
       if(chatStopped) {
-        driver.quit();
+        driver.close();
       }
     })
 
