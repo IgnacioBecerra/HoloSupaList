@@ -32,8 +32,6 @@ const {sanitizeObject, sanitizeString } = require('./sanitizers.js');
 
 chrome.setDefaultService(new chrome.ServiceBuilder(chromedriver.path).build());
 
-var driver;
-
 var mysql = require('mysql');
 var db_config = {
   host: process.env.host,
@@ -47,6 +45,10 @@ var db_config = {
 class SuperchatScraper {
 
   constructor(videoId, channelName, videoTitle) {
+    this.driver = new webdriver.Builder()
+               .withCapabilities(webdriver.Capabilities.chrome())
+               .setChromeOptions(options)
+               .build();
     this.videoId = videoId;
     this.channelName = channelName;
     this.videoTitle = videoTitle;
@@ -54,20 +56,13 @@ class SuperchatScraper {
   }
   
   setupObserver() {
-
-     driver = new webdriver.Builder()
-               .withCapabilities(webdriver.Capabilities.chrome())
-               .setChromeOptions(options)
-               .build();
-
-
-    driver.get(`https://www.youtube.com/live_chat?v=${this.videoId}`);
-    driver.executeScript('return navigator.userAgent').then((e) => {
+    this.driver.get(`https://www.youtube.com/live_chat?v=${this.videoId}`);
+    this.driver.executeScript('return navigator.userAgent').then((e) => {
       console.log(e)
     })
 
 
-    driver.wait(until.elementLocated(By.css('#items.yt-live-chat-item-list-renderer')));
+    this.driver.wait(until.elementLocated(By.css('#items.yt-live-chat-item-list-renderer')));
 
 
     let obs = `
@@ -132,14 +127,14 @@ class SuperchatScraper {
       }, 10000)}
     `
 
-    driver.executeScript(obs);
+    this.driver.executeScript(obs);
     this.insertData()
   }
 
   insertData() {
 
     setInterval( () => {
-      driver.executeScript(`return window.localStorage.getItem('chat')`).then( list => {
+      this.driver.executeScript(`return window.localStorage.getItem('chat')`).then( list => {
         let supas = JSON.parse(list);
 
         if(!supas) return;
@@ -154,12 +149,12 @@ class SuperchatScraper {
           });
         })
 
-        driver.executeScript(`window.localStorage.removeItem('chat')`);
+        this.driver.executeScript(`window.localStorage.removeItem('chat')`);
       })
 
-      driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
+      this.driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
         if(chatStopped) {
-          driver.close();
+          this.driver.close();
         }
       })
 

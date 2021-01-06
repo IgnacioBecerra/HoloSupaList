@@ -178,10 +178,6 @@ setInterval( () => {
     updateSchedules();
 }, 10800000);
 
-
-//setupObserver('HL4t7MefeC4')
-//insertData('Ame', '【Cooking Simulator】Cheftective~')
-
 // run every hour
 setInterval( () => {
     scheduleObservers();
