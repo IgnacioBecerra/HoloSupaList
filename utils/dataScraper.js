@@ -144,7 +144,7 @@ class SuperchatScraper {
 
   insertData() {
 
-    setInterval( () => {
+    let dataInsertion = setInterval( () => {
       this.driver.executeScript(`return window.localStorage.getItem('chat')`).then( list => {
         let supas = JSON.parse(list);
 
@@ -165,7 +165,8 @@ class SuperchatScraper {
 
       this.driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
         if(chatStopped) {
-          this.driver.close();
+          clearInterval(dataInsertion);
+          this.driver.quit();
         }
       })
 
