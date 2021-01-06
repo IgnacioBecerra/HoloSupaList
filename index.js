@@ -97,27 +97,13 @@ const getVideoData = (list) => {
             var sql = `UPDATE schedules SET start_time="${e.liveStreamingDetails.scheduledStartTime}" WHERE event_title = "${e.snippet.title}";`;
             connection.query(sql);
         } else {
-           let start = setInterval( () => {
-
-              let timeDiff = new Date(e.liveStreamingDetails.scheduledStartTime) - Date.now();
-              console.log('current time diff ' + timeDiff)
-
-              console.log('interval running')
-              if(timeDiff < 300000) {
-                  new SuperchatScraper(e.id, getNameFromChannelId(e.snippet.channelId), e.snippet.title);
-                  clearInterval(start)
-                  console.log(e.snippet.title + " start!")
-              }
-          }, 30000)
+            new SuperchatScraper(e.id, getNameFromChannelId(e.snippet.channelId), e.snippet.title);
+            console.log(e.snippet.title + " start!")
         }
-
-
     })
   });
 }
 
-
-// TODO watch streams that are happening within a few hours, wait until chat appears to run get video in setupObserver
 
 const scheduleObservers = () => {
   var sql = `SELECT * FROM schedules where start_time > NOW() ORDER BY start_time;`;
@@ -157,15 +143,16 @@ const updateSchedules = () => {
   request.get(authOptions, function(error, response, body) {
     console.log(body)
     body.events.forEach(event => {
+      event.subcalendar_ids.forEach(id => {
+        let streamer = getStreamer(id);
+        let channelId = getChannelId(id);
 
-      let streamer = getStreamer(event.subcalendar_id);
-      let channelId = getChannelId(event.subcalendar_id);
-
-      var sql = `INSERT IGNORE INTO Schedules (streamer, event_title, start_time, channel_id) VALUES ("${streamer}", "${event.title}", "${event.start_dt}", "${channelId}")`;
-      connection.query(sql, function (err, result) {
-        if (err) throw err; // try catch
-        console.log(sql);
-      });
+        var sql = `INSERT IGNORE INTO Schedules (streamer, event_title, start_time, channel_id) VALUES ("${streamer}", "${event.title}", "${event.start_dt}", "${channelId}")`;
+        connection.query(sql, function (err, result) {
+          if (err) throw err; // try catch
+          console.log(sql);
+        });
+      })
     })
   });
 }

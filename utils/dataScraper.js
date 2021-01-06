@@ -52,18 +52,29 @@ class SuperchatScraper {
     this.videoId = videoId;
     this.channelName = channelName;
     this.videoTitle = videoTitle;
-    this.setupObserver()
+    this.waitForChat(this.driver)
+  }
+
+  async waitForChat() {
+    this.driver.get(`https://www.youtube.com/live_chat?v=${this.videoId}`);
+
+    await new Promise((resolve) => {
+      let x = setInterval( () => {
+
+        this.driver.executeScript(`return document.querySelector('#items.yt-live-chat-item-list-renderer')`).then(e => {
+          if(e) {
+            clearInterval(x)
+            resolve();
+          } else {
+            this.driver.navigate().refresh();
+          }
+        })
+      }, 10000)
+    });
+    this.setupObserver();
   }
   
   setupObserver() {
-    this.driver.get(`https://www.youtube.com/live_chat?v=${this.videoId}`);
-    this.driver.executeScript('return navigator.userAgent').then((e) => {
-      console.log(e)
-    })
-
-
-    this.driver.wait(until.elementLocated(By.css('#items.yt-live-chat-item-list-renderer')));
-
 
     let obs = `
       let chatWindow = document.querySelector('#items.yt-live-chat-item-list-renderer');
