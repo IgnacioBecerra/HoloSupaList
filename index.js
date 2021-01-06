@@ -6,7 +6,7 @@ const port = process.env.PORT || "3000";
 
 require('dotenv').config();
 
-const {setupObserver, insertData} = require('./utils/dataScraper.js');
+const SuperchatScraper = require('./utils/dataScraper.js');
 
 
 var mysql = require('mysql');
@@ -104,8 +104,7 @@ const getVideoData = (list) => {
 
               console.log('interval running')
               if(timeDiff < 300000) {
-                  setupObserver(e.id);
-                  insertData(getNameFromChannelId(e.snippet.channelId), e.snippet.title)
+                  new SuperchatScraper(e.id, getNameFromChannelId(e.snippet.channelId), e.snippet.title);
                   clearInterval(start)
                   console.log(e.snippet.title + " start!")
               }
@@ -138,18 +137,25 @@ const scheduleObservers = () => {
 }
 
 
-
 const updateSchedules = () => {
+  let today = new Date();
+  let todayString = today.getFullYear() + '-' + ('0' + (today.getMonth()+1)).slice(-2) + '-' + ('0' + today.getDate()).slice(-2);
+  let nextDay = new Date(new Date().setDate(new Date().getDate() + 1));
+  let nextDayString = nextDay.getFullYear() + '-' + ('0' + (nextDay.getMonth()+1)).slice(-2) + '-' + ('0' + nextDay.getDate()).slice(-2);
+
   let authOptions = {
-    url: `http://api.teamup.com/ksgvawzp4akez27rf1/events?tz=UTC`,
+    url: `http://api.teamup.com/ksgvawzp4akez27rf1/events?startDate=${todayString}&endDate=${nextDayString}&tz=UTC`,
     headers: {
         'Teamup-Token': process.env.teamup_token
     },
     json: true
   };
 
+  console.log(authOptions)
+
 
   request.get(authOptions, function(error, response, body) {
+    console.log(body)
     body.events.forEach(event => {
 
       let streamer = getStreamer(event.subcalendar_id);
@@ -164,13 +170,17 @@ const updateSchedules = () => {
   });
 }
 
-scheduleObservers();
+updateSchedules();
+setTimeout(scheduleObservers, 5000);
 
 // update every 3 hours to account for changes
 setInterval( () => {
     updateSchedules();
 }, 10800000);
 
+
+//setupObserver('HL4t7MefeC4')
+//insertData('Ame', '【Cooking Simulator】Cheftective~')
 
 // run every hour
 setInterval( () => {
@@ -243,6 +253,24 @@ const getNameFromChannelId = (id) => {
       return "Kiara";
   }
 }
+
+/*
+const YouTube = require('youtube-live-chat');
+
+const yt = new YouTube('UCK9V2B22uJYu3N7eR_BT9QA', `${process.env.youtube_key}`);
+
+yt.on('ready', () => {
+  console.log('ready!')
+  yt.listen(1000)
+})
+
+yt.on('message', data => {
+  console.log(data)
+})
+
+yt.on('error', error => {
+  console.error(error)
+})*/
 
 
 // redirect to HTML homepage
