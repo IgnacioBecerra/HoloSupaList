@@ -78,6 +78,7 @@ class SuperchatScraper {
 
     let obs = `
       let chatWindow = document.querySelector('#items.yt-live-chat-item-list-renderer');
+      window.localStorage.setItem('stopped', 'false');
       let chatStopped = false;
 
       let obs = new MutationObserver(mutations => {
@@ -144,9 +145,19 @@ class SuperchatScraper {
 
   insertData() {
 
-    let dataInsertion = setInterval( () => {
-      this.driver.executeScript(`return window.localStorage.getItem('chat')`).then( list => {
+    let dataInsertion = setInterval( async () => {
+      await this.driver.executeScript(`return window.localStorage.getItem('chat')`).then( list => {
         let supas = JSON.parse(list);
+
+        this.driver.executeScript(`window.localStorage.removeItem('chat')`);
+        this.driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
+          if(chatStopped === 'true') {
+            console.log(this.videoTitle + " CHAT STOPPED")
+            clearInterval(dataInsertion);
+            this.driver.close();
+            this.driver.quit();
+          }
+        });
 
         if(!supas) return;
 
@@ -159,17 +170,7 @@ class SuperchatScraper {
             console.log(s);
           });
         })
-
-        this.driver.executeScript(`window.localStorage.removeItem('chat')`);
       })
-
-      this.driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
-        if(chatStopped) {
-          clearInterval(dataInsertion);
-          this.driver.quit();
-        }
-      })
-
     }, 20000)
   }
 }
