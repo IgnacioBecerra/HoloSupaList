@@ -146,30 +146,33 @@ class SuperchatScraper {
   insertData() {
 
     let dataInsertion = setInterval( async () => {
-      await this.driver.executeScript(`return window.localStorage.getItem('chat')`).then( list => {
+      await this.driver.executeScript(`return window.localStorage.getItem('chat')`).then( async (list) => {
         let supas = JSON.parse(list);
 
-        this.driver.executeScript(`window.localStorage.removeItem('chat')`);
-        this.driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
-          if(chatStopped === 'true') {
-            console.log(this.videoTitle + " CHAT STOPPED")
-            clearInterval(dataInsertion);
-            this.driver.close();
-            this.driver.quit();
-          }
-        });
+        if(supas) {
+          supas.forEach((s) => {
+            sanitizeObject(s);
 
-        if(!supas) return;
+            let channelName = this.channelName;
 
-        supas.forEach((s) => {
-          sanitizeObject(s);
+            var sql = `INSERT INTO ${channelName} (author, amount, message, timestamp, color, video) VALUES ("${s.author}", "${s.amount}", "${s.message}", "${s.timestamp}", "${s.color}", "${sanitizeString(this.videoTitle)}")`;
+            connection.query(sql, function (err, result) {
+              if (err) throw err; // try catch
+              console.log(s, channelName);
+            });
+          })
+          await this.driver.executeScript(`window.localStorage.removeItem('chat')`);
 
-          var sql = `INSERT INTO ${this.channelName} (author, amount, message, timestamp, color, video) VALUES ("${s.author}", "${s.amount}", "${s.message}", "${s.timestamp}", "${s.color}", "${sanitizeString(this.videoTitle)}")`;
-          connection.query(sql, function (err, result) {
-            if (err) throw err; // try catch
-            console.log(s);
+        } else {
+          this.driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
+            if(chatStopped === 'true') {
+              console.log(this.videoTitle + " CHAT STOPPED")
+              clearInterval(dataInsertion);
+              this.driver.close();
+              this.driver.quit();
+            }
           });
-        })
+        }
       })
     }, 20000)
   }

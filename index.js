@@ -48,22 +48,23 @@ function handleDisconnect() {
 handleDisconnect()
 
 
-const getVideoId = (channelId) => {
-  console.log(channelId)
+const parseDate = (date) => {
+  return date.getFullYear() + '-' + ('0' + (date.getMonth()+1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
+}
+
+
+const getVideoId = (channelId, eventType) => {
 
   let authOptions = {
-    url: `https://youtube.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=upcoming&type=video&key=${process.env.youtube_key}`,
+    url: `https://youtube.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=${eventType}&type=video&key=${process.env.youtube_key}`,
     json: true
   };
-
-  console.log(authOptions)
 
   let list = []
 
   // maybe check for stream for closest time
   request.get(authOptions, function(error, response, body) {
 
-    console.log(body)
     body.items.forEach(e => {
       list.push(e.id.videoId)
     })
@@ -82,11 +83,8 @@ const getVideoData = (list) => {
 
   // maybe check for stream for closest time
   request.get(authOptions, function(error, response, body) {
-
-    console.log(body)
     
     body.items.forEach( (e) => {
-        console.log(e)
 
         // just in case it gets rescheduled
         let startTime = new Date(e.liveStreamingDetails.scheduledStartTime) - Date.now();
@@ -113,10 +111,10 @@ const scheduleObservers = () => {
     // only schedule the ones that are happening within ten minutes
     result.forEach( (e) => {
       let timeUntilLive = new Date(e.start_time) - Date.now() - 600000; // start procedures 10 minutes before scheduled time
-      console.log('timeUntil ' + e.event_title + ' starts : ' + timeUntilLive)
+      console.log('time until ' + e.event_title + ' starts : ' + timeUntilLive)
 
       setTimeout( () => {
-        getVideoId(e.channel_id);
+        getVideoId(e.channel_id, 'upcoming');
       }, timeUntilLive);
     });
   });
@@ -125,9 +123,9 @@ const scheduleObservers = () => {
 
 const updateSchedules = () => {
   let today = new Date();
-  let todayString = today.getFullYear() + '-' + ('0' + (today.getMonth()+1)).slice(-2) + '-' + ('0' + today.getDate()).slice(-2);
+  let todayString = parseDate(today);
   let nextDay = new Date(new Date().setDate(new Date().getDate() + 1));
-  let nextDayString = nextDay.getFullYear() + '-' + ('0' + (nextDay.getMonth()+1)).slice(-2) + '-' + ('0' + nextDay.getDate()).slice(-2);
+  let nextDayString = parseDate(nextDay);
 
   let authOptions = {
     url: `http://api.teamup.com/ksgvawzp4akez27rf1/events?startDate=${todayString}&endDate=${nextDayString}&tz=UTC`,
@@ -137,11 +135,8 @@ const updateSchedules = () => {
     json: true
   };
 
-  console.log(authOptions)
-
 
   request.get(authOptions, function(error, response, body) {
-    console.log(body)
     body.events.forEach(event => {
       event.subcalendar_ids.forEach(id => {
         let streamer = getStreamer(id);
@@ -150,15 +145,31 @@ const updateSchedules = () => {
         var sql = `INSERT IGNORE INTO Schedules (streamer, event_title, start_time, channel_id) VALUES ("${streamer}", "${event.title}", "${event.start_dt}", "${channelId}")`;
         connection.query(sql, function (err, result) {
           if (err) throw err; // try catch
-          console.log(sql);
+          console.log(result);
         });
       })
     })
   });
 }
 
+const observeCurrent = () => {
+  var sql = `SELECT DISTINCT channel_id FROM schedules where start_time > NOW() - interval 1 day ORDER BY start_time;`;
+  connection.query(sql, function (err, result) {
+    if (err) throw err; // try catch
+
+    result.forEach( (e) => {
+      getVideoId(e.channel_id, 'live');
+    });
+  });
+}
+
+
+
+observeCurrent()
 updateSchedules();
 setTimeout(scheduleObservers, 5000);
+
+
 
 // update every 3 hours to account for changes
 setInterval( () => {
