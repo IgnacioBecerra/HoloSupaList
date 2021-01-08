@@ -145,7 +145,7 @@ const updateSchedules = () => {
         var sql = `INSERT IGNORE INTO Schedules (streamer, event_title, start_time, channel_id) VALUES ("${streamer}", "${event.title}", "${event.start_dt}", "${channelId}")`;
         connection.query(sql, function (err, result) {
           if (err) throw err; // try catch
-          console.log(result);
+          console.log(sql);
         });
       })
     })
