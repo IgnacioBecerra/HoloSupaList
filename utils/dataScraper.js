@@ -161,7 +161,11 @@ class SuperchatScraper {
               console.log(s, channelName);
             });
           })
-          await this.driver.executeScript(`window.localStorage.removeItem('chat')`);
+          try {
+            await this.driver.executeScript(`window.localStorage.removeItem('chat')`);
+          } catch {
+
+          }
 
         } else {
           this.driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
