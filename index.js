@@ -65,6 +65,10 @@ const getVideoId = (channelId, eventType) => {
   // maybe check for stream for closest time
   request.get(authOptions, function(error, response, body) {
 
+    console.log(body)
+
+    if(!body.items) return;
+
     body.items.forEach(e => {
       list.push(e.id.videoId)
     })
@@ -168,6 +172,11 @@ const observeCurrent = () => {
 observeCurrent()
 updateSchedules();
 setTimeout(scheduleObservers, 5000);
+
+//new SuperchatScraper('xarzp5IY26Q', 'test', 'test')
+process.on('unhandledRejection', (reason, promise) => {
+    console.warn('Unhandled promise rejection:', promise, 'reason:', reason.stack || reason);
+});
 
 
 

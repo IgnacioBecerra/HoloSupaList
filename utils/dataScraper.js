@@ -161,19 +161,15 @@ class SuperchatScraper {
               console.log(s, channelName);
             });
           })
-          try {
-            await this.driver.executeScript(`window.localStorage.removeItem('chat')`);
-          } catch {
-
-          }
+          await this.driver.executeScript(`window.localStorage.removeItem('chat')`);
 
         } else {
           this.driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
             if(chatStopped === 'true') {
               console.log(this.videoTitle + " CHAT STOPPED")
               clearInterval(dataInsertion);
-              this.driver.close();
-              this.driver.quit();
+              setTimeout(() => { this.driver.quit()}, 5000);
+              return;
             }
           });
         }
