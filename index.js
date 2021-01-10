@@ -42,7 +42,7 @@ function handleDisconnect() {
 
   setInterval(function () {
     connection.query('SELECT 1');
-  }, 10000);
+  }, 5000);
 }
 
 handleDisconnect()
