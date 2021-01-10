@@ -149,6 +149,8 @@ class SuperchatScraper {
       await this.driver.executeScript(`return window.localStorage.getItem('chat')`).then( async (list) => {
         let supas = JSON.parse(list);
 
+        if(supas) return;
+
         if(supas) {
           supas.forEach((s) => {
             sanitizeObject(s);
@@ -162,18 +164,18 @@ class SuperchatScraper {
             });
           })
           await this.driver.executeScript(`window.localStorage.removeItem('chat')`);
-
-        } else {
-          this.driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
-            if(chatStopped === 'true') {
-              console.log(this.videoTitle + " CHAT STOPPED")
-              clearInterval(dataInsertion);
-              setTimeout(() => { this.driver.quit()}, 5000);
-              return;
-            }
-          });
         }
+        return;
       })
+
+      await this.driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
+        if(chatStopped === 'true') {
+          console.log(this.videoTitle + " CHAT STOPPED")
+          clearInterval(dataInsertion);
+          this.driver.quit()
+          return;
+        }
+      });
     }, 20000)
   }
 }
