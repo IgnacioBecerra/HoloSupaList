@@ -174,8 +174,8 @@ const observeCurrent = () => {
 
 
 observeCurrent()
-updateSchedules();
-setTimeout(scheduleObservers, 5000);
+//updateSchedules();
+//setTimeout(scheduleObservers, 5000);
 
 //new SuperchatScraper('wwl7hZ9XI4o', 'test', 'test')
 
