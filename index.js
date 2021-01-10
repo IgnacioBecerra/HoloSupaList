@@ -42,7 +42,7 @@ function handleDisconnect() {
 
   setInterval(function () {
     connection.query('SELECT 1');
-  }, 5000);
+  }, 10000);
 }
 
 handleDisconnect()
@@ -85,8 +85,9 @@ const getVideoData = (list) => {
     json: true
   };
 
-  // maybe check for stream for closest time
   request.get(authOptions, function(error, response, body) {
+
+    if(!body.items) return;
     
     body.items.forEach( (e) => {
 
@@ -108,7 +109,7 @@ const getVideoData = (list) => {
 
 
 const scheduleObservers = () => {
-  var sql = `SELECT * FROM schedules where start_time > NOW() ORDER BY start_time;`;
+  var sql = `SELECT * FROM schedules where not exists(select * from waiting_room) and start_time > NOW() ORDER BY start_time;`;
   connection.query(sql, function (err, result) {
     if (err) throw err; // try catch
 
@@ -116,6 +117,9 @@ const scheduleObservers = () => {
     result.forEach( (e) => {
       let timeUntilLive = new Date(e.start_time) - Date.now() - 600000; // start procedures 10 minutes before scheduled time
       console.log('time until ' + e.event_title + ' starts : ' + timeUntilLive)
+
+      let sendToWaitingRoom = `INSERT INTO waiting_room (streamer, event_title, start_time, channel_id) VALUES ("${e.streamer}", "${e.event_title}", "${e.start_time}", "${e.channel_id}")`
+      connection.query(sendToWaitingRoom);
 
       setTimeout( () => {
         getVideoId(e.channel_id, 'upcoming');
@@ -125,7 +129,7 @@ const scheduleObservers = () => {
 }
 
 
-const updateSchedules = () => {
+const updateSchedules = async () => {
   let today = new Date();
   let todayString = parseDate(today);
   let nextDay = new Date(new Date().setDate(new Date().getDate() + 1));
@@ -140,7 +144,7 @@ const updateSchedules = () => {
   };
 
 
-  request.get(authOptions, function(error, response, body) {
+  await request.get(authOptions, function(error, response, body) {
     body.events.forEach(event => {
       event.subcalendar_ids.forEach(id => {
         let streamer = getStreamer(id);
@@ -173,7 +177,8 @@ observeCurrent()
 updateSchedules();
 setTimeout(scheduleObservers, 5000);
 
-//new SuperchatScraper('xarzp5IY26Q', 'test', 'test')
+//new SuperchatScraper('wwl7hZ9XI4o', 'test', 'test')
+
 process.on('unhandledRejection', (reason, promise) => {
     console.warn('Unhandled promise rejection:', promise, 'reason:', reason.stack || reason);
 });
