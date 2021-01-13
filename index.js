@@ -40,6 +40,8 @@ function handleDisconnect() {
     }
   });
 
+  connection.query('DELETE FROM waiting_room');
+
   setInterval(function () {
     connection.query('SELECT 1');
   }, 5000);
@@ -174,8 +176,8 @@ const observeCurrent = () => {
 
 
 observeCurrent()
-//updateSchedules();
-//setTimeout(scheduleObservers, 5000);
+updateSchedules();
+setTimeout(scheduleObservers, 5000);
 
 //new SuperchatScraper('wwl7hZ9XI4o', 'test', 'test')
 
