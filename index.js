@@ -119,8 +119,9 @@ const scheduleObservers = () => {
     result.forEach( (e) => {
       let timeUntilLive = new Date(e.start_time) - Date.now() - 600000; // start procedures 10 minutes before scheduled time
       console.log('time until ' + e.event_title + ' starts : ' + timeUntilLive)
+      console.log(e.start_time)
 
-      let sendToWaitingRoom = `INSERT INTO waiting_room (streamer, event_title, start_time, channel_id) VALUES ("${e.streamer}", "${e.event_title}", "${e.start_time}", "${e.channel_id}")`
+      let sendToWaitingRoom = `INSERT IGNORE INTO waiting_room (streamer, event_title, start_time, channel_id) VALUES ("${e.streamer}", "${e.event_title}", "${e.start_time}", "${e.channel_id}")`
       connection.query(sendToWaitingRoom);
 
       setTimeout( () => {
