@@ -101,19 +101,14 @@ class SuperchatScraper {
                 color: node.style.cssText.split(/[:;]/)[1],
               }
 
-              console.log(superChat)
-
               if(currentList) {
 
                 let list = JSON.parse(currentList);
                 list.push(superChat);
 
                 window.localStorage.setItem('chat', JSON.stringify(list));
-                console.log(node.querySelector('#content > #message').innerText);
-
               } else {
                 window.localStorage.setItem('chat', JSON.stringify([superChat]));
-                console.log(node.querySelector('#content > #message').innerText);
               }
             }
           })
@@ -143,40 +138,42 @@ class SuperchatScraper {
     this.insertData()
   }
 
-  insertData() {
+  async insertData() {
 
-    let dataInsertion = setInterval( async () => {
-      await this.driver.executeScript(`return window.localStorage.getItem('chat')`).then( async (list) => {
-        let supas = JSON.parse(list);
+    await new Promise((resolve) => {
+      let dataInsertion = setInterval( async () => {
+        await this.driver.executeScript(`return window.localStorage.getItem('chat')`).then( async (list) => {
+          let supas = JSON.parse(list);
 
-        if(!supas) return;
+          if(!supas) return;
 
-        if(supas) {
-          supas.forEach((s) => {
-            sanitizeObject(s);
+          if(supas) {
+            supas.forEach((s) => {
+              sanitizeObject(s);
 
-            let channelName = this.channelName;
+              let channelName = this.channelName;
 
-            var sql = `INSERT INTO ${channelName} (author, amount, message, timestamp, color, video) VALUES ("${s.author}", "${s.amount}", "${s.message}", "${s.timestamp}", "${s.color}", "${sanitizeString(this.videoTitle)}")`;
-            connection.query(sql, function (err, result) {
-              if (err) throw err; // try catch
-              console.log(s, channelName);
-            });
-          })
-          await this.driver.executeScript(`window.localStorage.removeItem('chat')`);
-        }
-        return;
-      })
-
-      await this.driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
-        if(chatStopped === 'true') {
-          console.log(this.videoTitle + " CHAT STOPPED")
-          clearInterval(dataInsertion);
-          this.driver.quit()
+              var sql = `INSERT INTO ${channelName} (author, amount, message, timestamp, color, video) VALUES ("${s.author}", "${s.amount}", "${s.message}", "${s.timestamp}", "${s.color}", "${sanitizeString(this.videoTitle)}")`;
+              connection.query(sql, function (err, result) {
+                if (err) throw err; // try catch
+                console.log(s, channelName);
+              });
+            })
+            await this.driver.executeScript(`window.localStorage.removeItem('chat')`);
+          }
           return;
-        }
-      });
-    }, 20000)
+        })
+
+        await this.driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
+          if(chatStopped === 'true') {
+            console.log(this.videoTitle + " CHAT STOPPED")
+            clearInterval(dataInsertion);
+            this.driver.quit()
+            resolve();
+          }
+        });
+      }, 20000)
+    })
   }
 }
 
