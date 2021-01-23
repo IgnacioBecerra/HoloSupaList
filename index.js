@@ -153,7 +153,7 @@ const updateSchedules = async () => {
         let streamer = getStreamer(id);
         let channelId = getChannelId(id);
 
-        var sql = `INSERT IGNORE INTO Schedules (streamer, event_title, start_time, channel_id) VALUES ("${streamer}", "${event.title}", "${event.start_dt}", "${channelId}")`;
+        var sql = `INSERT IGNORE INTO schedules (streamer, event_title, start_time, channel_id) VALUES ("${streamer}", "${event.title}", "${event.start_dt}", "${channelId}")`;
         connection.query(sql, function (err, result) {
           if (err) throw err; // try catch
           console.log(sql);
@@ -180,7 +180,7 @@ observeCurrent()
 updateSchedules();
 setTimeout(scheduleObservers, 5000);
 
-//new SuperchatScraper('wwl7hZ9XI4o', 'test', 'test')
+//new SuperchatScraper('nNphORD-Nl8', 'Kiara', "【Atelier Ryza】time for Lila's thighs to SHINE #kfp​ #キアライブ​")
 
 process.on('unhandledRejection', (reason, promise) => {
     console.warn('Unhandled promise rejection:', promise, 'reason:', reason.stack || reason);
@@ -246,22 +246,22 @@ const getChannelId = (id) => {
 const getNameFromChannelId = (id) => {
     switch(id) {
     case "UCyl1z3jo3XHR1riLFKG5UAg":
-      return "Ame";
+      return "ame";
 
     case "UCL_qhgtOy0dy1Agp8vkySQg":
-      return "Mori";
+      return "mori";
 
     case "UCoSrY_IQQVpmIRZ9Xf-y93g":
-      return "Gura";
+      return "gura";
 
     case "UC1CfXB_kRs3C-zaeTG3oGyg":
-      return "Haachama";
+      return "haachama";
 
     case "UCMwGHR0BTZuLsmjY_NT5Pwg":
-      return "Ina";
+      return "ina";
 
     case "UCHsx4Hqa-1ORjQTh9TYDhww":
-      return "Kiara";
+      return "kiara";
   }
 }
 

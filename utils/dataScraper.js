@@ -162,6 +162,8 @@ class SuperchatScraper {
             await this.driver.executeScript(`window.localStorage.removeItem('chat')`);
           }
           return;
+        }).catch( () => {
+          console.log("Promise rejected??");
         })
 
         await this.driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
@@ -171,6 +173,8 @@ class SuperchatScraper {
             this.driver.quit()
             resolve();
           }
+        }).catch( () => {
+          console.log("Promise rejected??");
         });
       }, 20000)
     })
