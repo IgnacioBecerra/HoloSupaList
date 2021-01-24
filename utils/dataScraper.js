@@ -172,7 +172,7 @@ class SuperchatScraper {
             console.log(this.videoTitle + " CHAT STOPPED")
             clearInterval(dataInsertion);
             dataInsertion = undefined;
-            this.driver.quit()
+            this.driver.close()
             resolve();
           }
         }).catch( () => {
