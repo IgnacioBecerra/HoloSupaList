@@ -139,9 +139,10 @@ class SuperchatScraper {
   }
 
   async insertData() {
+    let dataInsertion;
 
     await new Promise((resolve) => {
-      let dataInsertion = setInterval( async () => {
+      dataInsertion = setInterval( async () => {
         await this.driver.executeScript(`return window.localStorage.getItem('chat')`).then( async (list) => {
           let supas = JSON.parse(list);
 
@@ -163,18 +164,19 @@ class SuperchatScraper {
           }
           return;
         }).catch( () => {
-          console.log("Promise rejected??");
+          console.log("Insert promise rejected??");
         })
 
         await this.driver.executeScript(`return window.localStorage.getItem('stopped')`).then( chatStopped => {
           if(chatStopped === 'true') {
             console.log(this.videoTitle + " CHAT STOPPED")
             clearInterval(dataInsertion);
+            dataInsertion = undefined;
             this.driver.quit()
             resolve();
           }
         }).catch( () => {
-          console.log("Promise rejected??");
+          console.log("Chat stop promise rejected??");
         });
       }, 20000)
     })
