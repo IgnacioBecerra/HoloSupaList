@@ -180,7 +180,8 @@ observeCurrent()
 updateSchedules();
 setTimeout(scheduleObservers, 5000);
 
-//new SuperchatScraper('nNphORD-Nl8', 'Kiara', "【Atelier Ryza】time for Lila's thighs to SHINE #kfp​ #キアライブ​")
+//new SuperchatScraper('YRKZnRale5g', 'test', "mori")
+
 
 process.on('unhandledRejection', (reason, promise) => {
     console.warn('Unhandled promise rejection:', promise, 'reason:', reason.stack || reason);
@@ -293,7 +294,7 @@ app.get('/', function(req, res, next) {
 });
 
 app.get('/getAme', function(req, res, next) {
-  var sql = `SELECT * FROM Ame;`;
+  var sql = `SELECT * FROM ame;`;
   connection.query(sql, function (err, rows) {
     if (err) throw err; // try catch
     res.send(rows)
